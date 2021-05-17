@@ -9,7 +9,7 @@ import tornado.web
 from handlers.HelloWorldHandler import HelloWorldHandler
 
 
-class HelloWorldApplication(tornado.web.Application):
+class App(tornado.web.Application):
 
     def __init__(self, **kwargs):
         kwargs['handlers'] = [
@@ -24,9 +24,12 @@ def start_service(port_number=3000):
     """
     set_up_logging()
     log = logging.getLogger(__name__)
+    # change event loop policy to make tornado work on Windows
+    # this is needed due to changes in asyncio in python v3.8
+    # see: https://github.com/tornadoweb/tornado/issues/2608
     if 'win' in sys.platform:
         asyncio.set_event_loop_policy((asyncio.WindowsSelectorEventLoopPolicy()))
-    application = HelloWorldApplication()
+    application = App()
     server = HTTPServer(application, ssl_options=None)
     server.listen(port_number)
     log.info("Starting Service on port {}".format(port_number))
