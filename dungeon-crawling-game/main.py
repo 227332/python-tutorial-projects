@@ -1,5 +1,4 @@
 import configparser
-import sys
 import warnings
 
 from model.game import Room, DungeonCrawlingGame
@@ -22,19 +21,19 @@ def main(config_file: str = "config.ini") -> None:
             f"Please specify the correct parameters under section {_CONFIG_SECTION}."
         )
         print("Game Over")
-        sys.exit()
+        return
     try:
         rooms = read_rooms_from_file(input_file)
     except ValueError as error:
         print(f"Error: {error}")
         print("Game Over")
-        sys.exit()
+        return
     game = DungeonCrawlingGame(rooms=rooms)
     if game.map_coords.x_max - game.map_coords.x_min + 1 > _MAX_SIZE_DUNGEON_MAP[0] \
             or game.map_coords.y_max - game.map_coords.y_min + 1 > _MAX_SIZE_DUNGEON_MAP[1]:
         print(f"Error: The size of the dungeon map must be at most {_MAX_SIZE_DUNGEON_MAP}")
         print("Game Over")
-        sys.exit()
+        return
     print("Ready to start!")
     print(
         "This is the current map of the dungeon. "
@@ -50,7 +49,7 @@ def main(config_file: str = "config.ini") -> None:
         user_input = user_input.strip().lower()
         if user_input == "z":
             print("Thank you for playing. See you soon!")
-            sys.exit()
+            return
         if not set(user_input).issubset(_DOOR_DIRECTIONS):
             print("What you typed does not exist. Try again.")
         else:
