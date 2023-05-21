@@ -4,15 +4,11 @@ This repository contains a Python implementation of the text-based dungeon crawl
 
 ## Install
 
-Create a new conda environment with the necessary packages:
-```
-conda env create -f env/environment.yml
-```
-For development and test purposes, use env/environment_dev.yml. 
+Create a new Python environment with the env tool of your choice.
 
-You can activate the environment at any time with the command:
+Activate it and then run the command:
 ```
-conda activate <name_env>
+pip install requirements.txt
 ```
 
 ## Run
