@@ -1,6 +1,6 @@
 import unittest
 
-from model.game import Room, DungeonCrawlingGame
+from model.game import Room, DungeonCrawlingGame, InvalidMoveException
 
 
 class TestDungeonCrawlingGame(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestDungeonCrawlingGame(unittest.TestCase):
         game = DungeonCrawlingGame(self.rooms)
         game.make_move("e")
         self.assertEqual(game.current_room.name, "a1")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidMoveException):
             game.make_move("n")
 
     def test_get_dungeon_map_with_current_room_location(self):

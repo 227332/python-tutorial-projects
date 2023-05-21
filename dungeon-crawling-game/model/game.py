@@ -24,6 +24,10 @@ class Room:
         return self._doors
 
 
+class InvalidMoveException(Exception):
+    """Exception raised when an invalid move is made."""
+
+
 class DungeonCrawlingGame:
     """Representation of the Dungeon Crawling Game."""
 
@@ -61,7 +65,7 @@ class DungeonCrawlingGame:
         try:
             name_next_room = self._current_room.doors[door_direction]
         except KeyError:
-            raise ValueError(f"Room {self._current_room.name} has no door in direction {door_direction}")
+            raise InvalidMoveException(f"Room {self._current_room.name} has no door in direction {door_direction}")
         else:
             self._current_room = self._rooms[name_next_room]
 

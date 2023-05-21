@@ -1,7 +1,7 @@
 import configparser
 import warnings
 
-from model.game import Room, DungeonCrawlingGame
+from model.game import Room, DungeonCrawlingGame, InvalidMoveException
 
 _ROOM_NAME_LENGTH = 2
 _OPPOSITE_DIRECTION = {'s': 'n', 'n': 's', 'e': 'w', 'w': 'e'}
@@ -57,7 +57,7 @@ def main(config_file: str = "config.ini") -> None:
             for move_idx, move in enumerate(moves):
                 try:
                     game.make_move(move)
-                except ValueError as error:
+                except InvalidMoveException as error:
                     print(error)
                     print(f"These moves get skipped: {' '.join(moves[move_idx:])}")
                     break
