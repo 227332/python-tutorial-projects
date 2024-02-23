@@ -1,26 +1,29 @@
-[tool.poetry]
+[project]
 name = "kafka-getting-started"
 version = "0.1.0"
 description = ""
-authors = ["Rosa"]
+authors = [{name = "Rosa"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "argparse==1.4.0",
+    "confluent-kafka==2.0.2",
+    "tqdm==4.66.2",
+]
 
-[tool.poetry.dependencies]
-python = "~3.10"
-confluent-kafka = "2.0.2"
-argparse = "^1.4.0"
-tqdm = "^4.66.2"
-
-[tool.poetry.dev-dependencies]
-black = "^22.1.0"
-pylint = "^2.12.2"
-pytest = "^7.0.1"
-pytest-mock = "^3.7.0"
-isort = "^5.10.1"
-mypy = "^1.4.1"
+[project.optional-dependencies]
+dev = [
+    "black==24.2.0",
+    "isort==5.10.1",
+    "mypy==1.4.1",
+    "pylint==2.12.2",
+    "pytest==7.0.1",
+    "pytest-mock==3.7.0",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [tool.isort]
 include_trailing_comma = true
@@ -30,7 +33,6 @@ group_by_package = true
 profile = "black"
 lines_after_imports = 2
 skip = []
-src_paths = ["src", "tests"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -44,8 +46,7 @@ disallow_untyped_defs = false
 
 [tool.pylint.messages_control]
 disable = [
-    "fixme",
-    "logging-fstring-interpolation",
+    "missing-function-docstring",
     "missing-class-docstring",
     "missing-module-docstring",
 ]

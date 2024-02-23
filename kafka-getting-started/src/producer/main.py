@@ -3,14 +3,13 @@ import json
 import random
 import time
 
-from confluent_kafka import Producer, KafkaError, Message
+from confluent_kafka import KafkaError, Message, Producer
 from tqdm import tqdm
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description=(
-            "Produce messages to send to the topic"
-        )
+        description=("Produce messages to send to the topic")
     )
     parser.add_argument(
         "--topic",
@@ -33,15 +32,18 @@ def parse_args():
     )
     return parser.parse_args()
 
+
 def delivery_callback(err: KafkaError, msg: Message) -> None:
     """
     Called once for each message produced to indicate delivery result.
     Invoked by poll() or flush().
     """
     if err is not None:
-        print('Message delivery failed: {}'.format(err))
+        print("Message delivery failed: {}".format(err))
     else:
-        print(f"Produced event to topic {msg.topic()}: value = {msg.value().decode('utf-8')}")
+        print(
+            f"Produced event to topic {msg.topic()}: value = {msg.value().decode('utf-8')}"
+        )
 
 
 if __name__ == "__main__":
@@ -52,17 +54,19 @@ if __name__ == "__main__":
 
     kafka_broker = f"localhost:{port}"
 
-    producer = Producer({
-        "bootstrap.servers": kafka_broker,
-        "client.id": "test-producer",
-        "acks": 1,
-        "linger.ms": 0, # default, batching is disabled
-    })
+    producer = Producer(
+        {
+            "bootstrap.servers": kafka_broker,
+            "client.id": "test-producer",
+            "acks": 1,
+            "linger.ms": 0,  # default, batching is disabled
+        }
+    )
 
-    products = ['book', 'alarm clock', 't-shirts', 'gift card', 'batteries']
+    products = ["book", "alarm clock", "t-shirts", "gift card", "batteries"]
 
     for _ in tqdm(range(num_messages)):
-        msg_value = json.dumps({"Message": random.choice(products)}).encode('utf-8')
+        msg_value = json.dumps({"Message": random.choice(products)}).encode("utf-8")
         producer.produce(
             topic=topic_name,
             value=msg_value,
@@ -70,8 +74,8 @@ if __name__ == "__main__":
         )
         producer.poll(0)
         # add some delay between messages
-        time.sleep(random.randint(1, 10)) 
+        time.sleep(random.randint(1, 10))
 
-    print('Waiting for the remaining messages to be delivered...')
+    print("Waiting for the remaining messages to be delivered...")
     producer.flush()
-    print(f'Producer has completed its work.')
+    print(f"Producer has completed its work.")

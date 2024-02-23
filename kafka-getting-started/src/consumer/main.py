@@ -1,14 +1,11 @@
 import argparse
 import functools
 
-from confluent_kafka import Consumer, OFFSET_BEGINNING
+from confluent_kafka import OFFSET_BEGINNING, Consumer
+
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description=(
-            "Consume messages from the topic"
-        )
-    )
+    parser = argparse.ArgumentParser(description=("Consume messages from the topic"))
     parser.add_argument(
         "--topic",
         type=str,
@@ -31,7 +28,6 @@ def parse_args():
     return parser.parse_args()
 
 
-
 if __name__ == "__main__":
     args = parse_args()
     topic_name = args.topic
@@ -48,7 +44,7 @@ if __name__ == "__main__":
             "auto.offset.reset": "earliest",
             "enable.auto.offset.store": False,
             "enable.auto.commit": True,
-            "auto.commit.interval.ms": 5000, # default
+            "auto.commit.interval.ms": 5000,  # default
         }
     )
 
@@ -59,7 +55,10 @@ if __name__ == "__main__":
         consumer.assign(topic_partitions)
 
     # Subscribe to topic
-    consumer.subscribe([topic_name], on_assign=functools.partial(on_assign_callback, is_replay=is_replay))
+    consumer.subscribe(
+        [topic_name],
+        on_assign=functools.partial(on_assign_callback, is_replay=is_replay),
+    )
 
     # Poll for new messages from Kafka and print them
     try:
@@ -73,7 +72,9 @@ if __name__ == "__main__":
             elif msg.error():
                 print("ERROR: %s".format(msg.error()))
             else:
-                print(f"Consumed event from {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: value = {msg.value().decode('utf-8')}")
+                print(
+                    f"Consumed event from {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: value = {msg.value().decode('utf-8')}"
+                )
                 consumer.store_offsets(msg)
     except KeyboardInterrupt:
         pass

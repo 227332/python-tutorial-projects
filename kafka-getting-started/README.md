@@ -14,10 +14,17 @@ Install [conflent CLI](https://docs.confluent.io/confluent-cli/current/install.h
 brew install confluentinc/tap/cli
 ```
 
-Install [Poetry](https://python-poetry.org/docs/#installation) and then create a Python virtual env for this project:
+Select the Python version required by this project (e.g. via a Python Version Management like [pyenv](https://github.com/pyenv/pyenv)).
+
+Create a Python virtual env for this project and install the project dependencies.
+For example, if you use [venv](https://docs.python.org/3/library/venv.html), run:
 ```
-poetry install
+python3 -m venv $PWD/.venv
+source .venv/bin/activate
+pip install .
 ```
+
+For development, install dev dependencies via `pip install '.[dev]'`.
 
 
 ## Setting up a Kafka Cluster
@@ -38,12 +45,12 @@ Activate the python environment.
 
 Check the command to create a new topic:
 ```
-python admin/create_topic.py [--help]
+python src/admin/create_topic.py [--help]
 ```
 
 Example:
 ```
-python admin/create_topic.py --topic test-topic --port 56479
+python src/admin/create_topic.py --topic test-topic --port 56479
 ```
 
 ## Producing messages to the Kafka topic
@@ -52,12 +59,12 @@ Activate the python environment.
 
 Check the command to produce N messages:
 ```
-python producer/main.py [--help]
+python src/producer/main.py [--help]
 ```
 
 Example:
 ```
-python producer/main.py --topic test-topic --port 56479
+python src/producer/main.py --topic test-topic --port 56479
 ```
 
 ## Consuming messages from the Kafka topic
@@ -66,7 +73,7 @@ Activate the python environment.
 
 Check the command to consume messages:
 ```
-python consumer/main.py [--help]
+python src/consumer/main.py [--help]
 ```
 
 You can choose weather to start from the beginning or from the latest committed offset.
@@ -74,5 +81,13 @@ You can choose weather to start from the beginning or from the latest committed 
 
 Example:
 ```
-python consumer/main.py --topic test-topic --port 56479 [--replay true]
+python src/consumer/main.py --topic test-topic --port 56479 [--replay true]
+```
+
+## Clean-up
+
+Deactivate your virtual env. 
+If you created it via [venv](https://docs.python.org/3/library/venv.html), run:
+```
+deactivate
 ```
