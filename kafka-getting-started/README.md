@@ -5,7 +5,7 @@ This repository sets up a Kafka cluster with a single broker and shows how to us
 - build a Kafka Producer application that sends messages to the topic
 - build a Kafka Consumer application that consumes messages from the topic.
 
-This project got inspiration from [Getting Started with Apache Kafka and Python](https://developer.confluent.io/get-started/python/).
+This project took its initial inspiration from [Getting Started with Apache Kafka and Python](https://developer.confluent.io/get-started/python/), and then several functionalities were incorporated while progressing through my Kafka learning journey.
 
 ## Prerequisites
 
