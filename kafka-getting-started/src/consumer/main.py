@@ -49,6 +49,34 @@ def on_assign_callback(consumer, topic_partitions, replay):
         consumer.assign(topic_partitions)
 
 
+def process_messages(consumer, limit, fail_on_error=False):
+    counter = 0
+    while (limit < 0) or (counter < limit):
+        msg = consumer.poll(1.0)
+        if msg is None:
+            # Initial message consumption may take up to
+            # `session.timeout.ms` for the consumer group to
+            # rebalance and start consuming
+            print("Waiting...")
+        elif msg.error():
+            print("ERROR: %s".format(msg.error()))
+        else:
+            try:
+                value = msg.value().decode("utf-8")
+                print(
+                    f"Consumed event from {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: {value=}"
+                )
+            except AttributeError as err:
+                print(
+                    f"Encountered an error for {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: {err=}"
+                )
+                if fail_on_error:
+                    raise err
+            consumer.store_offsets(msg)
+            counter += 1
+    return
+
+
 if __name__ == "__main__":
     args = parse_args()
     print(f"Running consumer application with {args=}")
@@ -84,36 +112,17 @@ if __name__ == "__main__":
         on_assign=functools.partial(on_assign_callback, replay=replay),
     )
 
-    limit = -1 if not replay else replay.end_offset - replay.start_offset + 1
-    counter = 0
-    # Poll for Kafka messages and print them
+    if replay:
+        num_messages = replay.end_offset - replay.start_offset + 1
+        fail_on_error = True
+    else:
+        # consume new messages indefinitely
+        num_messages = -1
+        fail_on_error = False
     try:
-        while (limit < 0) or (counter < limit):
-            msg = consumer.poll(1.0)
-            if msg is None:
-                # Initial message consumption may take up to
-                # `session.timeout.ms` for the consumer group to
-                # rebalance and start consuming
-                print("Waiting...")
-            elif msg.error():
-                print("ERROR: %s".format(msg.error()))
-            else:
-                try:
-                    value = msg.value().decode("utf-8")
-                    print(
-                        f"Consumed event from {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: {value=}"
-                    )
-                except AttributeError as err:
-                    # for a non-transient error, do not raise any exception,
-                    # but log its offset together with the error, then commit the offset and
-                    # proceed to the next message.
-                    # After the application bug is fixed, a replay can then consume this failed msg
-                    # again and process it correctly
-                    print(
-                        f"Encountered an error for {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: {err=}"
-                    )
-                consumer.store_offsets(msg)
-                counter += 1
+        process_messages(
+            consumer=consumer, limit=num_messages, fail_on_error=fail_on_error
+        )
     except KeyboardInterrupt:
         pass
     finally:

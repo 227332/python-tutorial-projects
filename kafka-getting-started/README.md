@@ -115,6 +115,14 @@ Example:
 python src/consumer/main.py --topic test-topic --port 9092 [replay --start-offset 0 --end-offset 3]
 ```
 
+There are a few differences between running the code in normal mode or in replay mode:
+- in normal mode, the Consumer application:
+  - runs indefinitely, waiting for and consuming new Kafka messages as soon as they arrive
+  - handles a non-transient error (e.g. application bug) in a non-blocking way by not raising any exception, but logging the failed offset together with the error, then committing it and proceeding to the next message. After the application bug is fixed, a replay can then consume all the failed messages again and process them correctly
+- in replay mode, the Consumer application:
+  - consumes all offsets between start and end offset, both inclusive, and then completes successfully.
+  - handles a non-transient error (e.g. application bug) in a blocking way by raising an exception so that the application crashes and the offset of the failed msg is not committed. After the application bug is fixed, re-start the replay from the failed msg.
+
 ## Clean-up
 
 Deactivate your virtual env. 
