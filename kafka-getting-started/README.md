@@ -107,12 +107,12 @@ Check the command to consume messages:
 python src/consumer/main.py [--help]
 ```
 
-You can choose weather to start from the beginning or from the latest committed offset.
-
+You can choose weather to start from the latest committed offset or whether to run in replay mode.
+In case of replay, you have to provide the range [start offset, end offset] of offsets you would like to replay.
 
 Example:
 ```shell
-python src/consumer/main.py --topic test-topic --port 9092 [--replay true]
+python src/consumer/main.py --topic test-topic --port 9092 [replay --start-offset 0 --end-offset 3]
 ```
 
 ## Clean-up
