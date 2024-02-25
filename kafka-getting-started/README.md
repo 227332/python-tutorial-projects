@@ -27,10 +27,39 @@ We use the [official Docker image](https://docs.confluent.io/platform/current/in
 
 Start a Docker container running a single-node Kafka cluster via the following command:
 ```shell
-docker-compose up -d
+docker compose up -d
 ```
 
-This command sets up a Docker bridge network and runs a Kafka cluster with a single broker and Zookeeper as consensus manager.
+This command runs a Kafka cluster with a single broker and ZooKeeper as consensus manager, and sets up a Docker bridge network called kafka-getting-started_default for the communication between the broker container and the ZooKeeper container.
+
+Note that the ZooKeeper dependency can be removed by using Kafka in KRaft mode. 
+A docker compose file setting up a Kafka cluster in KRaft mode would look like the following:
+```yaml
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    hostname: kafka
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,LISTENER_INTERNAL:PLAINTEXT,LISTENER_HOST:PLAINTEXT'
+      # listeners that clients will use to connect to the broker
+      KAFKA_ADVERTISED_LISTENERS: 'LISTENER_INTERNAL://kafka:29092,LISTENER_HOST://localhost:9092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      # listeners that Kafka binds to
+      # unlike for advertised listeners, replace localhost here with 0.0.0.0
+      KAFKA_LISTENERS: 'CONTROLLER://kafka:29093,LISTENER_INTERNAL://kafka:29092,LISTENER_HOST://0.0.0.0:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'LISTENER_INTERNAL'
+      # set it to a base64-encoded UUID
+      # (e.g. run: cat /proc/sys/kernel/random/uuid | tr -d '-' | base64 | cut -b 1-22)
+      CLUSTER_ID: 'MjA3ODcyMTVhNTY3NDM3NG'
+```
+However, be aware that Kafka KRaft is a recent functionality and is currently not working as expected on this project: it doesn't recognize the topic requested by the Consumer application and so it attempts to create a new topic.
+
+This project will keep using ZooKeeper for now and will migrate to Kafka KRaft once it becomes more mature.
 
 ## Creating a Kafka topic
 
@@ -58,6 +87,15 @@ python src/producer/main.py [--help]
 Example:
 ```shell
 python src/producer/main.py --topic test-topic --port 9092
+```
+
+You can quickly check that the producer application has correctly sent the messages to the Kafka topic by using the [kcat](https://docs.confluent.io/platform/current/tools/kafkacat-usage.html) utility:
+```shell
+# option 1: running kcat on the same Docker bridge network
+docker run -it --network=kafka-getting-started_default edenhill/kcat:1.7.1 -b kafka:29092 -t test-topic
+
+# option 2: running kcat on the Docker host network
+docker run -it --network=host edenhill/kcat:1.7.1 -b localhost:9092 -t test-topic
 ```
 
 ## Consuming messages from the Kafka topic

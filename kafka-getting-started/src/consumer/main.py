@@ -30,6 +30,8 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    print(f"Running consumer application with {args=}")
+
     topic_name = args.topic
     port = args.port
     is_replay = args.replay
@@ -50,6 +52,7 @@ if __name__ == "__main__":
 
     def on_assign_callback(consumer, topic_partitions, is_replay):
         if is_replay:
+            print(f"Resetting offset for {topic_partitions=}...")
             for topic_partition in topic_partitions:
                 topic_partition.offset = OFFSET_BEGINNING
         consumer.assign(topic_partitions)

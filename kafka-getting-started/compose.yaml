@@ -16,10 +16,18 @@ services:
       - 9092:9092
     environment:
       KAFKA_BROKER_ID: 1
+      # Kafka broker connects to ZooKeeper via the Docker bridge network
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # listeners that clients will use to connect to the broker
+      # - apps within the same Docker bridge network can connect to Kafka using LISTENER_INTERNAL
+      # - other apps on the same host machine can connect to Kafka through the host network using LISTENER_HOST
+      # For more info, see: 
+      # - https://docs.confluent.io/platform/current/kafka/multi-node.html 
+      # - https://www.confluent.io/blog/kafka-listeners-explained/
+      # - https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/ 
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://kafka:29092,LISTENER_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
