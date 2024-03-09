@@ -7,7 +7,7 @@ from confluent_kafka import KafkaError, Message, Producer
 from tqdm import tqdm
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=("Produce messages to send to the topic")
     )
@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument(
         "--port",
         type=int,
-        help="Plaintext port of the Kafka broker",
+        help="Port of the Kafka broker",
         required=True,
     )
     parser.add_argument(
@@ -39,14 +39,14 @@ def delivery_callback(err: KafkaError, msg: Message) -> None:
     Invoked by poll() or flush().
     """
     if err is not None:
-        print("Message delivery failed: {}".format(err))
+        print(f"Message delivery failed: {err=}")
     else:
         print(
             f"Produced event to topic {msg.topic()}: value = {msg.value().decode('utf-8')}"
         )
 
 
-if __name__ == "__main__":
+def main() -> None:
     args = parse_args()
     topic_name = args.topic
     port = args.port
@@ -78,4 +78,8 @@ if __name__ == "__main__":
 
     print("Waiting for the remaining messages to be delivered...")
     producer.flush()
-    print(f"Producer has completed its work.")
+    print("Producer has completed its work.")
+
+
+if __name__ == "__main__":
+    main()

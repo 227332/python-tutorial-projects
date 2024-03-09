@@ -3,8 +3,8 @@ import argparse
 from confluent_kafka.admin import AdminClient, NewTopic
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description=("Create a topic"))
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Create a topic")
     parser.add_argument(
         "--topic",
         type=str,
@@ -12,9 +12,10 @@ def parse_args():
         required=True,
     )
     parser.add_argument(
+        # pylint: disable=duplicate-code
         "--port",
         type=int,
-        help="Plaintext port of the Kafka broker",
+        help="Port of the Kafka broker",
         required=True,
     )
     parser.add_argument(
@@ -27,7 +28,7 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main() -> None:
     args = parse_args()
     topic_name = args.topic
     port = args.port
@@ -50,3 +51,7 @@ if __name__ == "__main__":
         print(f"Successfully created topic {topic_name}")
     except Exception as err:
         raise err
+
+
+if __name__ == "__main__":
+    main()

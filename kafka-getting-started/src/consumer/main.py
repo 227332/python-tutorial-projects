@@ -2,13 +2,13 @@ import argparse
 from collections import namedtuple
 import functools
 
-from confluent_kafka import Consumer
+from confluent_kafka import Consumer, TopicPartition
 
 
 Replay = namedtuple("Replay", ["start_offset", "end_offset"])
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     main_parser = argparse.ArgumentParser(
         description=("Consume messages from the topic")
     )
@@ -41,7 +41,9 @@ def parse_args():
     return main_parser.parse_args()
 
 
-def on_assign_callback(consumer, topic_partitions, replay):
+def on_assign_callback(
+    consumer: Consumer, topic_partitions: list[TopicPartition], replay: Replay
+) -> None:
     if replay:
         print(f"Setting offset to {replay.start_offset} for {topic_partitions=}...")
         for topic_partition in topic_partitions:
@@ -49,7 +51,9 @@ def on_assign_callback(consumer, topic_partitions, replay):
         consumer.assign(topic_partitions)
 
 
-def process_messages(consumer, limit, fail_on_error=False):
+def process_messages(
+    consumer: Consumer, limit: int, fail_on_error: bool = False
+) -> None:
     counter = 0
     while (limit < 0) or (counter < limit):
         msg = consumer.poll(1.0)
@@ -59,7 +63,7 @@ def process_messages(consumer, limit, fail_on_error=False):
             # rebalance and start consuming
             print("Waiting...")
         elif msg.error():
-            print("ERROR: %s".format(msg.error()))
+            print(f"Error: {msg.error()=}")
         else:
             try:
                 value = msg.value().decode("utf-8")
@@ -74,10 +78,9 @@ def process_messages(consumer, limit, fail_on_error=False):
                     raise err
             consumer.store_offsets(msg)
             counter += 1
-    return
 
 
-if __name__ == "__main__":
+def main() -> None:
     args = parse_args()
     print(f"Running consumer application with {args=}")
 
@@ -132,3 +135,7 @@ if __name__ == "__main__":
     finally:
         # Leave group and commit final offsets
         consumer.close()
+
+
+if __name__ == "__main__":
+    main()
