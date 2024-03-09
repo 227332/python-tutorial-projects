@@ -98,7 +98,11 @@ if __name__ == "__main__":
     consumer = Consumer(
         {
             "bootstrap.servers": kafka_broker,
-            "group.id": "test-consumer-group",
+            "group.id": (
+                "test-normal-mode-consumer-group"
+                if not replay
+                else "test-replay-mode-consumer-group"
+            ),
             "auto.offset.reset": "earliest",
             "enable.auto.offset.store": False,
             "enable.auto.commit": True,

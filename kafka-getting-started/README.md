@@ -121,7 +121,10 @@ There are a few differences between running the code in normal mode or in replay
   - handles a non-transient error (e.g. application bug) in a non-blocking way by not raising any exception, but logging the failed offset together with the error, then committing it and proceeding to the next message. After the application bug is fixed, a replay can then consume all the failed messages again and process them correctly
 - in replay mode, the Consumer application:
   - consumes all offsets between start and end offset, both inclusive, and then completes successfully.
+    - if you specify a start offset that does not exist, Kafka doesn't raise any error in the on_assign callback, but rather sets the offset to the earliest offset available in the Kafka broker.
   - handles a non-transient error (e.g. application bug) in a blocking way by raising an exception so that the application crashes and the offset of the failed msg is not committed. After the application bug is fixed, re-start the replay from the failed msg.
+
+Since normal mode and replay mode are 2 different processes, they use 2 different consumer groups to avoid to affect each other.
 
 ## Clean-up
 
