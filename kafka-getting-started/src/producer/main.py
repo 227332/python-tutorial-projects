@@ -1,9 +1,12 @@
 import argparse
-import json
 import random
 import time
 
 from confluent_kafka import KafkaError, Message, Producer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.json_schema import JSONSerializer
+from confluent_kafka.serialization import MessageField, SerializationContext
+from message_schema import Product, product_to_dict, schema_str
 from tqdm import tqdm
 
 
@@ -41,8 +44,10 @@ def delivery_callback(err: KafkaError, msg: Message) -> None:
     if err is not None:
         print(f"Message delivery failed: {err=}")
     else:
+        # msg.value() is a byte-representation of a json-serialized object
         print(
-            f"Produced event to topic {msg.topic()}: value = {msg.value().decode('utf-8')}"
+            f"Produced event to {msg.topic()=} {msg.partition()=} {msg.offset()=} "
+            f"{msg.timestamp()=}: value = {msg.value().decode('utf-8')}"
         )
 
 
@@ -63,10 +68,25 @@ def main() -> None:
         }
     )
 
-    products = ["book", "alarm clock", "t-shirts", "gift card", "batteries"]
+    schema_registry_client = SchemaRegistryClient(
+        {
+            "url": "http://localhost:8081",
+        }
+    )
+
+    json_serializer = JSONSerializer(
+        schema_str=schema_str,
+        schema_registry_client=schema_registry_client,
+        to_dict=product_to_dict,
+    )
+
+    product_names = ["book", "alarm clock", "t-shirts", "gift card", "batteries"]
 
     for _ in tqdm(range(num_messages)):
-        msg_value = json.dumps({"Message": random.choice(products)}).encode("utf-8")
+        product = Product(product_name=random.choice(product_names))
+        msg_value = json_serializer(
+            product, SerializationContext(topic_name, MessageField.VALUE)
+        )
         producer.produce(
             topic=topic_name,
             value=msg_value,

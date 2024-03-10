@@ -3,6 +3,13 @@ from collections import namedtuple
 import functools
 
 from confluent_kafka import Consumer, TopicPartition
+from confluent_kafka.schema_registry.json_schema import Deserializer, JSONDeserializer
+from confluent_kafka.serialization import (
+    MessageField,
+    SerializationContext,
+    SerializationError,
+)
+from message_schema import dict_to_product, schema_str
 
 
 Replay = namedtuple("Replay", ["start_offset", "end_offset"])
@@ -52,7 +59,11 @@ def on_assign_callback(
 
 
 def process_messages(
-    consumer: Consumer, limit: int, fail_on_error: bool = False
+    consumer: Consumer,
+    limit: int,
+    deserializer: Deserializer,
+    topic_name: str,
+    fail_on_error: bool = False,
 ) -> None:
     counter = 0
     while (limit < 0) or (counter < limit):
@@ -66,11 +77,14 @@ def process_messages(
             print(f"Error: {msg.error()=}")
         else:
             try:
-                value = msg.value().decode("utf-8")
-                print(
-                    f"Consumed event from {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: {value=}"
+                product = deserializer(
+                    msg.value(), SerializationContext(topic_name, MessageField.VALUE)
                 )
-            except AttributeError as err:
+                print(
+                    f"Consumed event from {msg.topic()=} {msg.partition()=} {msg.offset()=} "
+                    f"{msg.timestamp()=}: value={product}"
+                )
+            except SerializationError as err:
                 print(
                     f"Encountered an error for {msg.topic()=} {msg.offset()=} {msg.timestamp()=}: {err=}"
                 )
@@ -119,6 +133,8 @@ def main() -> None:
         on_assign=functools.partial(on_assign_callback, replay=replay),
     )
 
+    deserializer = JSONDeserializer(schema_str, from_dict=dict_to_product)
+
     if replay:
         num_messages = replay.end_offset - replay.start_offset + 1
         fail_on_error = True
@@ -128,7 +144,11 @@ def main() -> None:
         fail_on_error = False
     try:
         process_messages(
-            consumer=consumer, limit=num_messages, fail_on_error=fail_on_error
+            consumer=consumer,
+            limit=num_messages,
+            deserializer=deserializer,
+            topic_name=topic_name,
+            fail_on_error=fail_on_error,
         )
     except KeyboardInterrupt:
         pass
